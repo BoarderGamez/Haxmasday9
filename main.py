@@ -1,9 +1,67 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header, Button
+from textual.containers import Grid, Vertical, Center
+from textual.widgets import Footer, Header, Button, Label
 from textual.containers import Grid
+import datetime
+from textual.screen import Screen
+class DayScreen(Screen):
+    gifts = {
+    1: "Hamburger",
+    2: "Cheeseburger",
+    3: "Hotdog",
+    4: "Pizza",
+    5: "Ice cream",
+    6: "Chocolate",
+    7: "Cake",
+    8: "Cookies",
+    9: "Chocolate bar",
+    10: "Chocolate chip cookies",
+    11: "Chocolate milk",
+    12: "Chocolate cake"
+}       
+    """Screen for a day of the advent calendar!"""
+    CSS = """
+    DayScreen {
+        align: center middle;
+    }
+    
+    #dialog {
+        width: 50;
+        height: auto;
+        border: thick $primary;
+        background: $surface;
+        padding: 2;
+        align: center middle;
+    }
+    
+    #dialog Label {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 1;
+    }
+    
+    #dialog Button {
+        width: auto;
+    }
+    """
+    def __init__(self, day: int) -> None:
+        self.day = day
+        super().__init__()
+    
+    def compose(self) -> ComposeResult:
+        with Vertical(id="dialog"):
+            yield Label(f"Here's what's in day {str(self.day)}: {self.gifts.get(self.day)}")
+            with Center():
+                yield Button("Close", id="close")
 
+    
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss()
+        event.stop()
 class AdventCalendarApp(App):
     """Textual calendar app"""
+    theme = "catppuccin-latte"
     
     CSS = """
     Grid {
@@ -26,7 +84,7 @@ class AdventCalendarApp(App):
     """
     
     BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
-    
+    START_DATE = datetime.date(2025, 12, 13)
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
@@ -38,15 +96,21 @@ class AdventCalendarApp(App):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button clicks."""
         button = event.button
+        day = str(button.label)
+        unlock_day = self.START_DATE + datetime.timedelta(days=int(day) - 1)
+        
+        if datetime.date.today() < unlock_day:
+            self.notify(f"You will be able to unlock day {day} on {unlock_day}")
+            return None
+        
         if not button.has_class("opened"):
             button.add_class("opened")
-            day = button.label
-            self.notify(f"Day {day} opened!")
-    
+        self.push_screen(DayScreen(int(day)))
+
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
         self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"
+            "catppuccin-frappe" if self.theme == "catppuccin-latte" else "catppuccin-latte"
         )
 
 def main():
