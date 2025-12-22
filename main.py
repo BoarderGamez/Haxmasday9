@@ -5,6 +5,9 @@ from textual.reactive import reactive
 from textual.containers import Grid
 import datetime
 from textual.screen import Screen
+from pathlib import Path
+
+SAVE_FILE = Path(__file__).parent / "completed_days.txt"
 class DayScreen(Screen):
     gifts = {
     1: "Hamburger",
@@ -92,8 +95,17 @@ class AdventCalendarApp(App):
     }
     """
     
-    BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
+    BINDINGS = [("d", "toggle_dark", "Toggle dark mode"), ("r", "reset_days", "Reset days")]
     START_DATE = datetime.date(2025, 12, 13)
+    
+    def load_completed_days(self) -> set[int]:
+        if SAVE_FILE.exists():
+            return set(int(d) for d in SAVE_FILE.read_text().split() if d.strip())
+        return set()
+    
+    def save_completed_days(self, days: set[int]) -> None:
+        SAVE_FILE.write_text(" ".join(str(d) for d in sorted(days)))
+    
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
@@ -102,6 +114,14 @@ class AdventCalendarApp(App):
                 yield Button(str(day), id=f"day-{day}")
         yield Static(f"Days completed: 0/12", id="counter")
         yield Footer()
+    
+    def on_mount(self) -> None:
+        """Load saved progress on startup."""
+        completed = self.load_completed_days()
+        for day in completed:
+            button = self.query_one(f"#day-{day}", Button)
+            button.add_class("opened")
+        self.completed = len(completed)
     
     def watch_completed(self, value: int) -> None:
         try:
@@ -122,6 +142,9 @@ class AdventCalendarApp(App):
         if not button.has_class("opened"):
             button.add_class("opened")
             self.completed += 1
+            completed = self.load_completed_days()
+            completed.add(int(day))
+            self.save_completed_days(completed)
         self.push_screen(DayScreen(int(day)))
 
     def action_toggle_dark(self) -> None:
@@ -129,6 +152,14 @@ class AdventCalendarApp(App):
         self.theme = (
             "catppuccin-frappe" if self.theme == "catppuccin-latte" else "catppuccin-latte"
         )
+    
+    def action_reset_days(self) -> None:
+        """Reset all opened days."""
+        for button in self.query("Grid Button"):
+            button.remove_class("opened")
+        self.completed = 0
+        self.save_completed_days(set())
+        self.notify("All days reset!")
 
 def main():
     app = AdventCalendarApp()
