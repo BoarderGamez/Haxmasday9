@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Button
+from textual.widgets import Footer, Header, Button, Label, Static
 from textual.containers import Grid, Vertical, Center
-from textual.widgets import Footer, Header, Button, Label
+from textual.reactive import reactive
 from textual.containers import Grid
 import datetime
 from textual.screen import Screen
@@ -62,8 +62,17 @@ class DayScreen(Screen):
 class AdventCalendarApp(App):
     """Textual calendar app"""
     theme = "catppuccin-latte"
+    completed = reactive(0)
     
     CSS = """
+    #counter {
+        height: 1;
+        width: 100%;
+        background: $primary;
+        text-align: center;
+        color: $text;
+    }
+    
     Grid {
         grid-size: 4 3;
         grid-gutter: 1 2;
@@ -91,7 +100,14 @@ class AdventCalendarApp(App):
         with Grid():
             for day in range(1, 13):
                 yield Button(str(day), id=f"day-{day}")
+        yield Static(f"Days completed: 0/12", id="counter")
         yield Footer()
+    
+    def watch_completed(self, value: int) -> None:
+        try:
+            self.query_one("#counter", Static).update(f"Days completed: {value}/12")
+        except Exception:
+            pass
     
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button clicks."""
@@ -105,6 +121,7 @@ class AdventCalendarApp(App):
         
         if not button.has_class("opened"):
             button.add_class("opened")
+            self.completed += 1
         self.push_screen(DayScreen(int(day)))
 
     def action_toggle_dark(self) -> None:
