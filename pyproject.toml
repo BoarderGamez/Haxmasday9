@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "haxmas_day_9_frogtospace"
+version = "0.0.1"
+description = "Advent calendar"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE*"]
+dependencies = [
+    "textual",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+advent-calendar = "haxmas_day_9_frogtospace.main:main"
+
+[project.urls]
+Documentation = "https://git.gay/Frog/Haxmasday9"
+Homepage = "https://git.gay/Frog/Haxmasday9"
+Issues = "https://git.gay/Frog/Haxmasday9/issues"
+Source = "https://git.gay/Frog/Haxmasday9"
