@@ -7,7 +7,7 @@ name = "haxmas_day_9_frogtospace"
 version = "0.0.1"
 description = "Advent calendar"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12.3"
 license = "MIT"
 license-files = ["LICENSE*"]
 dependencies = [
